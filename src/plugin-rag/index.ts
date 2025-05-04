@@ -752,7 +752,7 @@ export const ragPlugin: Plugin = {
     const repoUrl = process.env.REPO_URL || 'https://github.com/elizaos/eliza.git';
     const branch = process.env.REPO_BRANCH || 'v2-develop';
 
-    logger.info(`Checking for ElizaOS repository at: ${repoPath}`);
+    logger.info(`Checking for ${repoDirName} repository at: ${repoPath}`);
 
     logger.info('Initializing character...');
     await initCharacter({ runtime });
@@ -804,7 +804,7 @@ export const ragPlugin: Plugin = {
           }
         }
 
-        const docsPath = path.join(repoPath, 'packages', 'docs', 'docs');
+        const docsPath = path.join(repoPath, 'src/content/Docs');
         logger.info(`Attempting to load documentation from: ${docsPath}`);
 
         if (fs.existsSync(docsPath)) {
@@ -854,3 +854,38 @@ export const ragPlugin: Plugin = {
 };
 
 export default ragPlugin;
+
+function getBaseURL(): string {
+  return 'https://chatapi.akash.network/api/v1';
+}
+
+const EMBEDDING_TIMEOUT = 30000; // 30 seconds timeout
+
+async function generateEmbeddingWithTimeout(text: string, apiKey: string): Promise<number[]> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), EMBEDDING_TIMEOUT);
+
+  try {
+    const response = await fetch(`${getBaseURL()}/embeddings`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'BAAI-bge-large-en-v1-5',
+        input: text,
+      }),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Embedding request failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.data[0].embedding;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}

@@ -1,5 +1,25 @@
 import type { IAgentRuntime, Memory, Provider } from '@elizaos/core';
-import { addHeader } from '@elizaos/core';
+import { addHeader, logger } from '@elizaos/core';
+
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second
+
+async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  retries = MAX_RETRIES,
+  delay = RETRY_DELAY
+): Promise<T> {
+  try {
+    return await fn();
+  } catch (error) {
+    if (retries === 0) {
+      throw error;
+    }
+    logger.warn(`Retrying after error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    await new Promise(resolve => setTimeout(resolve, delay));
+    return retryWithBackoff(fn, retries - 1, delay * 2);
+  }
+}
 
 /**
  * Represents a knowledge provider that retrieves knowledge from the knowledge base.
@@ -18,7 +38,15 @@ export const knowledgeProvider: Provider = {
     'Knowledge from the knowledge base that the agent knows, retrieved whenever the agent needs to answer a question about their expertise.',
   get: async (runtime: IAgentRuntime, message: Memory) => {
     console.log('*** RETRIEVING KNOWLEDGE ***');
-    const knowledgeData = await runtime.getKnowledge(message);
+    
+    const knowledgeData = await retryWithBackoff(async () => {
+      try {
+        return await runtime.getKnowledge(message);
+      } catch (error) {
+        logger.error('Error retrieving knowledge:', error);
+        throw error;
+      }
+    });
 
     const firstFiveKnowledgeItems = knowledgeData?.slice(0, 5);
 

@@ -3,9 +3,9 @@ dotenv.config();
 
 import type { Character } from '@elizaos/core';
 import { ragPlugin } from '@/plugin-rag';
-import { groqPlugin } from '@/plugin-groq';
-import { openaiPlugin } from '@elizaos/plugin-openai';
-// import { akashchatPlugin } from '../plugin-akash-chat';
+//import { groqPlugin } from '@/plugin-groq';
+// import { openaiPlugin } from '@elizaos/plugin-openai';
+//import { akashchatPlugin } from '@/plugin-akash-chat';
 
 /**
  * A character object representing Eddy, a developer support agent for ElizaOS.
