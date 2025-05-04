@@ -9,7 +9,7 @@ export const siteConfig = {
     {
       rel: "icon",
       type: "image/png",
-      url: "/eliza-black.png",
+      url: "/favicon.ico",
       media: "(prefers-color-scheme: light)",
     },
     {
