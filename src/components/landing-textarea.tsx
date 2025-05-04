@@ -80,7 +80,7 @@ export const LandingTextarea = () => {
                 aria-label="Prompt"
                 value={input}
                 onChange={handleInputChange}
-                placeholder="Ask a question about Eliza..."
+                placeholder="Ask a question about Akash..."
                 className={clsx([
                   "size-full bg-transparent",
                   "relative block size-full appearance-none",

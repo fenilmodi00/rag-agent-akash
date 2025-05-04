@@ -2,9 +2,9 @@ import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 
 const examplePrompts: string[] = [
-  "What is Eliza?",
+  "What is akash network?",
   "What is an agent?",
-  "How to create an agent",
+  "How to create a deploymnet on akash",
 ];
 
 interface ExamplePromptsProps {

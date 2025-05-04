@@ -12,7 +12,7 @@ import { akashchatPlugin } from '../plugin-akash-chat/src/index';
  */
 const character: Partial<Character> = {
   name: 'Navi',
-  plugins: ['@elizaos/plugin-sql', '@elizaos/plugin-akash-chat'],
+  plugins: ['@elizaos/plugin-sql', '@elizaos/plugin-akash-chat',],
   settings: {
     AKASH_CHAT_API_KEY: process.env.AKASH_CHAT_API_KEY,
     // LARGE_GROQ_MODEL: 'meta-llama/llama-4-maverick-17b-128e-instruct',
