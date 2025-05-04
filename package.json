@@ -33,7 +33,7 @@
     "@codemirror/view": "^6.35.3",
     "@elizaos/cli": "1.0.0-beta.41",
     "@elizaos/core": "1.0.0-beta.41",
-    "@elizaos/plugin-akash-chat": "file:../plugin-akash-chat",
+    "@elizaos/plugin-akash-chat": "file:./plugin-akash-chat",
     "@elizaos/plugin-anthropic": "1.0.0-beta.41",
     "@elizaos/plugin-bootstrap": "1.0.0-beta.41",
     "@elizaos/plugin-groq": "1.0.0-beta.41",
