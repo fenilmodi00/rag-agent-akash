@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+@import "../styles/particles.css";
 
 .prose :where(pre):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
   @apply !px-0 !py-0;

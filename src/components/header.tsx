@@ -14,8 +14,17 @@ import { Logo } from "@/components/logo";
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+
+    setMounted(true);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const NavLinks = ({ mobile = false }) => (
     <>
@@ -91,7 +100,14 @@ export function Header() {
   );
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-10 bg-white dark:bg-black">
+    <header 
+      className={clsx(
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        scrolled 
+          ? "bg-white/80 dark:bg-black/80 backdrop-blur-md shadow-sm" 
+          : "bg-transparent"
+      )}
+    >
       <nav className="px-4 lg:px-6 w-full" aria-label="Global">
         <div className="flex items-center justify-between py-4">
           <div className="flex">
@@ -112,7 +128,7 @@ export function Header() {
         className="lg:hidden"
         variant="slideout"
       >
-        <div className="px-6 py-6 h-full">
+        <div className="px-6 py-6 h-full bg-white dark:bg-black">
           <div className="flex items-center justify-between">
             <Link
               href="/"
