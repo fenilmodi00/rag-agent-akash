@@ -10,6 +10,14 @@ Chat with an Eliza agent about your docs
     cd eliza.how
     ```
 
+
+
+
+
+     ## Download characters submodule from the character repos
+```bash
+    git submodule update --init
+```
 2.  **Install dependencies:**
     ```bash
     npm install
