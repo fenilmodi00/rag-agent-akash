@@ -804,18 +804,24 @@ export const ragPlugin: Plugin = {
           }
         }
 
-        const docsPath = path.join(repoPath, 'src/content/Docs');
-        logger.info(`Attempting to load documentation from: ${docsPath}`);
+        // Load documentation from data/awesome-akash
+        const awesomeAkashPath = path.join(repoPath, 'data/awesome-akash');
+        logger.info(`Attempting to load documentation from: ${awesomeAkashPath}`);
 
-        if (fs.existsSync(docsPath)) {
-          logger.debug('Loading documentation...');
-          const docKnowledge = loadDocumentation(docsPath);
-          if (docKnowledge.length > 0) {
+        // Load documentation from docs-akash/Docs
+        const docsAkashPath = path.join(repoPath, 'docs-akash/Docs');
+        logger.info(`Attempting to load documentation from: ${docsAkashPath}`);
+
+        // Process awesome-akash documentation
+        if (fs.existsSync(awesomeAkashPath)) {
+          logger.debug('Loading awesome-akash documentation...');
+          const awesomeAkashDocs = loadDocumentation(awesomeAkashPath);
+          if (awesomeAkashDocs.length > 0) {
             logger.info(
-              `Loaded ${docKnowledge.length} documentation files. Adding to knowledge base...`
+              `Loaded ${awesomeAkashDocs.length} awesome-akash documentation files. Adding to knowledge base...`
             );
             let addedCount = 0;
-            for (const docContent of docKnowledge) {
+            for (const docContent of awesomeAkashDocs) {
               const knowledgeItem: KnowledgeItem = {
                 id: v4() as UUID,
                 content: { text: docContent },
@@ -834,16 +840,56 @@ export const ragPlugin: Plugin = {
               }
             }
             logger.info(
-              `Successfully added ${addedCount}/${docKnowledge.length} documentation files to knowledge base.`
+              `Successfully added ${addedCount}/${awesomeAkashDocs.length} awesome-akash documentation files to knowledge base.`
             );
           } else {
-            logger.warn(`No documentation files found or loaded from ${docsPath}.`);
+            logger.warn(`No documentation files found or loaded from ${awesomeAkashPath}.`);
           }
         } else {
           logger.warn(
-            `Documentation directory not found: ${docsPath}. Cannot load documentation knowledge.`
+            `Documentation directory not found: ${awesomeAkashPath}. Cannot load awesome-akash documentation.`
           );
         }
+
+        // Process docs-akash documentation
+        if (fs.existsSync(docsAkashPath)) {
+          logger.debug('Loading docs-akash documentation...');
+          const docsAkashDocs = loadDocumentation(docsAkashPath);
+          if (docsAkashDocs.length > 0) {
+            logger.info(
+              `Loaded ${docsAkashDocs.length} docs-akash documentation files. Adding to knowledge base...`
+            );
+            let addedCount = 0;
+            for (const docContent of docsAkashDocs) {
+              const knowledgeItem: KnowledgeItem = {
+                id: v4() as UUID,
+                content: { text: docContent },
+              };
+              try {
+                const defaultKnowledgeOptions = {
+                  targetTokens: 8000,
+                  overlap: 500,
+                  modelContextSize: 64000,
+                };
+
+                await runtime.addKnowledge(knowledgeItem, defaultKnowledgeOptions);
+                addedCount++;
+              } catch (addError) {
+                logger.error(`Failed to add knowledge item: ${addError}`);
+              }
+            }
+            logger.info(
+              `Successfully added ${addedCount}/${docsAkashDocs.length} docs-akash documentation files to knowledge base.`
+            );
+          } else {
+            logger.warn(`No documentation files found or loaded from ${docsAkashPath}.`);
+          }
+        } else {
+          logger.warn(
+            `Documentation directory not found: ${docsAkashPath}. Cannot load docs-akash documentation.`
+          );
+        }
+
       } catch (error) {
         logger.error(`Failed to clone or update repository: ${error}`);
         logger.warn('Proceeding without loading documentation knowledge due to repository error.');
