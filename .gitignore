@@ -13,6 +13,8 @@
 # testing
 /coverage
 
+/akash-knowledge
+
 # next.js
 /.next/
 /out/
