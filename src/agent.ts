@@ -6,6 +6,7 @@ import { ragPlugin } from '@/plugin-rag';
 //import { groqPlugin } from '@/plugin-groq';
 // import { openaiPlugin } from '@elizaos/plugin-openai';
 import { akashchatPlugin } from '../plugin-akash-chat/src/index';
+// import discordPlugin from '../plugin-discord/src/index';
 
 /**
  * A character object representing Eddy, a developer support agent for ElizaOS.
@@ -311,3 +312,4 @@ export const project = {
 };
 
 export default project;
+

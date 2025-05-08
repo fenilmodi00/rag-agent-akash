@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
-  entry: ['src/agent.ts'],
+  entry: ['src/index.ts'],
   outDir: 'dist',
   tsconfig: './tsconfig.build.json', // Use build-specific tsconfig
   sourcemap: true,
@@ -12,10 +12,14 @@ export default defineConfig({
     'dotenv', // Externalize dotenv to prevent bundling
     'fs', // Externalize fs to use Node.js built-in module
     'path', // Externalize other built-ins if necessary
+    '@reflink/reflink',
+    '@node-llama-cpp',
     'https',
     'http',
+    'agentkeepalive',
+    '@elizaos/core',
+    'fluent-ffmpeg',
     'zod',
-    'events', // Externalize events to use Node.js built-in module
-    'prism-media',
+    // Add other modules you want to externalize
   ],
 });
