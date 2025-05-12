@@ -24,7 +24,7 @@ export const LandingTextarea = () => {
 
   const handleCreateSearch = useCallback((prompt: string) => {
     push(`/search?q=${prompt}`);
-  }, []);
+  }, [push]);
 
   const handleSubmit = useCallback(
     (e: any) => {
@@ -38,12 +38,12 @@ export const LandingTextarea = () => {
         setIsLoading(false);
       }
     },
-    [input],
+    [input, handleCreateSearch],
   );
 
   const handlePromptSelect = useCallback((prompt: string) => {
     handleCreateSearch(prompt);
-  }, []);
+  }, [handleCreateSearch]);
 
   return (
     <div className="flex flex-col w-full gap-4">

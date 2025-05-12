@@ -15,5 +15,7 @@ export default defineConfig({
     'https',
     'http',
     'zod',
+    'events', // Externalize events to use Node.js built-in module
+    'prism-media',
   ],
 });

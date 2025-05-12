@@ -3,7 +3,6 @@ import type {
   ModelTypeName,
   ObjectGenerationParams,
   Plugin,
-  TextEmbeddingParams,
 } from '@elizaos/core';
 import {
   type DetokenizeTextParams,

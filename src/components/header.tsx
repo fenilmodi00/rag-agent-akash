@@ -13,7 +13,6 @@ import { Logo } from "@/components/logo";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -21,7 +20,6 @@ export function Header() {
       setScrolled(window.scrollY > 10);
     };
 
-    setMounted(true);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);

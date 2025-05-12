@@ -25,7 +25,7 @@ export function CodeBlock({ className, children }) {
 
   const language = useMemo(() => {
     return className?.replace("lang-", "") || "";
-  }, [children, className]);
+  }, [className]);
 
   const ref = useCallback((node: HTMLElement | null) => {
     if (!node) return;

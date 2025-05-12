@@ -28,6 +28,7 @@ import { fileURLToPath } from 'node:url';
 import { v4 } from 'uuid';
 import { recentMessagesProvider } from './providers/recentMessages';
 import { execSync } from 'node:child_process';
+import type { EventPayload } from '@elizaos/core';
 
 /**
  * Extracts the text content from within a <response> XML tag.
@@ -106,56 +107,6 @@ type MediaData = {
 
 const latestResponseIds = new Map<string, Map<string, string>>();
 
-/**
- * Escapes special characters in a string to make it JSON-safe.
- */
-/* // Removing JSON specific helpers
-function escapeForJson(input: string): string {
-  return input
-    .replace(/\\/g, '\\\\')
-    .replace(/"/g, '\\"')
-    .replace(/\n/g, '\\n')
-    .replace(/```/g, '\\`\\`\\`');
-}
-
-function sanitizeJson(rawJson: string): string {
-  try {
-    // Try parsing directly
-    JSON.parse(rawJson);
-    return rawJson; // Already valid
-  } catch {
-    // Continue to sanitization
-  }
-
-  // first, replace all newlines with \n
-  const sanitized = rawJson
-    .replace(/\n/g, '\\n')
-
-    // then, replace all backticks with \\\`
-    .replace(/`/g, '\\\`');
-
-  // Regex to find and escape the "text" field
-  const fixed = sanitized.replace(/"text"\s*:\s*"([\s\S]*?)"\s*,\s*"simple"/, (_match, group) => {
-    const escapedText = escapeForJson(group);
-    return `"text": "${escapedText}", "simple"`;
-  });
-
-  // Validate that the result is actually parseable
-  try {
-    JSON.parse(fixed);
-    return fixed;
-  } catch (e) {
-    throw new Error(`Failed to sanitize JSON: ${e.message}`);
-  }
-}
-*/
-
-/**
- * Fetches media data from a list of attachments, supporting both HTTP URLs and local file paths.
- *
- * @param attachments Array of Media objects containing URLs or file paths to fetch media from
- * @returns Promise that resolves with an array of MediaData objects containing the fetched media data and content type
- */
 /**
  * Fetches media data from given attachments.
  * @param {Media[]} attachments - Array of Media objects to fetch data from.
@@ -496,7 +447,6 @@ const handleServerSync = async ({ runtime, world, rooms, entities, source }: Wor
 const controlMessageHandler = async ({
   runtime,
   message,
-  source,
 }: {
   runtime: IAgentRuntime;
   message: {
@@ -507,7 +457,6 @@ const controlMessageHandler = async ({
     };
     roomId: UUID;
   };
-  source: string;
 }) => {
   try {
     logger.debug(
@@ -625,8 +574,6 @@ const events = {
       logger.debug(`Action ${status}: ${payload.actionName} (${payload.actionId})`);
     },
   ],
-
-  CONTROL_MESSAGE: [controlMessageHandler],
 };
 
 // Get the current file's directory
@@ -740,6 +687,60 @@ const initCharacter = async ({
   }
 };
 
+async function getEmbeddings(text: string, apiKey: string, model: string) {
+  const baseURL = 'https://chatapi.akash.network/api/v1';
+
+  if (!apiKey || apiKey === 'YOUR_API_KEY_PLACEHOLDER') {
+    console.error('❌ API key is missing or is a placeholder for embeddings.');
+    throw new Error('API key for embeddings is not configured.');
+  }
+
+  const url = `${baseURL}/embeddings`;
+
+  const payload = {
+    model,
+    input: text,
+  };
+
+  const headers = {
+    'Authorization': `Bearer ${apiKey}`,
+    'Content-Type': 'application/json',
+  };
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`❌ Embedding: Server responded with status ${response.status}:`, errorText);
+      throw new Error(`Embedding fetch failed: ${response.status} ${response.statusText}`);
+    }
+
+    const json = await response.json();
+    if (json && json.data && json.data[0] && json.data[0].embedding) {
+      return json.data[0].embedding;
+    }
+    console.error('❌ Embedding: Unexpected response structure:', json);
+    throw new Error('Unexpected response structure from embedding service');
+  } catch (err: any) {
+    clearTimeout(timeout);
+    if (err.name === 'AbortError') {
+      console.error('❌ Embedding: Request timed out after 10s');
+    }
+    throw err;
+  }
+}
+
 export const ragPlugin: Plugin = {
   name: 'rag',
   description: 'RAG plugin with basic actions and evaluators',
@@ -757,6 +758,21 @@ export const ragPlugin: Plugin = {
     logger.info('Initializing character...');
     await initCharacter({ runtime });
     logger.info('Character initialized.');
+
+    // Removed the runtime.registerEmbeddingFunction block as it does not exist on IAgentRuntime
+    // The getEmbeddings function remains defined in this file for potential future use
+    // by custom logic within this plugin, but it won't override the default
+    // elizaOS core embedding behavior for addKnowledge/addEmbeddingToMemory automatically.
+
+    // Ensure logger.warn call is a single string argument
+    const apiKey = runtime.getSetting('AKASH_CHAT_API_KEY') as string;
+    // Only pass one argument to getSetting, and handle fallback logic manually
+    let embeddingModelName = runtime.getSetting('AKASHCHAT_EMBEDDING_MODEL') as string;
+    if (!embeddingModelName) embeddingModelName = 'BAAI-bge-large-en-v1-5';
+    if (!apiKey || !embeddingModelName) {
+      logger.warn('AKASH_CHAT_API_KEY or AKASHCHAT_EMBEDDING_MODEL not found. Embeddings might not function correctly if custom logic relies on them directly.');
+    }
+
     setTimeout(async () => {
       console.log('*** Loading documentation...');
       console.log("workspaceRoot", workspaceRoot);
@@ -777,7 +793,7 @@ export const ragPlugin: Plugin = {
               cwd: workspaceRoot,
               stdio: 'inherit',
             });
-            logger.info('Repository cloned successfully.');
+            logger.info(`Repository cloned successfully to ${repoPath}`);
           } else {
             logger.info('Repository found. Checking out branch and pulling latest changes...');
             try {
@@ -804,45 +820,61 @@ export const ragPlugin: Plugin = {
           }
         }
 
-        const docsPath = path.join(repoPath, 'src/content/Docs');
-        logger.info(`Attempting to load documentation from: ${docsPath}`);
+        // --- Start Modification: Load from multiple directories ---
+        const knowledgeDirs = ['data/awesome-akash', 'docs-akash/Docs']; // Directories relative to repoPath
+        let allDocKnowledge: string[] = [];
 
-        if (fs.existsSync(docsPath)) {
-          logger.debug('Loading documentation...');
-          const docKnowledge = loadDocumentation(docsPath);
-          if (docKnowledge.length > 0) {
-            logger.info(
-              `Loaded ${docKnowledge.length} documentation files. Adding to knowledge base...`
-            );
-            let addedCount = 0;
-            for (const docContent of docKnowledge) {
-              const knowledgeItem: KnowledgeItem = {
-                id: v4() as UUID,
-                content: { text: docContent },
-              };
-              try {
-                const defaultKnowledgeOptions = {
-                  targetTokens: 8000,
-                  overlap: 500,
-                  modelContextSize: 64000,
-                };
+        for (const dir of knowledgeDirs) {
+          const fullDocsPath = path.join(repoPath, dir);
+          logger.info(`Attempting to load documentation from: ${fullDocsPath}`);
 
-                await runtime.addKnowledge(knowledgeItem, defaultKnowledgeOptions);
-                addedCount++;
-              } catch (addError) {
-                logger.error(`Failed to add knowledge item: ${addError}`);
-              }
+          if (fs.existsSync(fullDocsPath)) {
+            logger.debug(`Loading documentation from ${fullDocsPath}...`);
+            const docKnowledge = loadDocumentation(fullDocsPath);
+            if (docKnowledge.length > 0) {
+              logger.info(`Loaded ${docKnowledge.length} files from ${fullDocsPath}.`);
+              allDocKnowledge = allDocKnowledge.concat(docKnowledge);
+            } else {
+              logger.warn(`No documentation files found or loaded from ${fullDocsPath}.`);
             }
-            logger.info(
-              `Successfully added ${addedCount}/${docKnowledge.length} documentation files to knowledge base.`
-            );
           } else {
-            logger.warn(`No documentation files found or loaded from ${docsPath}.`);
+            logger.warn(
+              `Documentation directory not found: ${fullDocsPath}. Skipping.`
+            );
           }
-        } else {
-          logger.warn(
-            `Documentation directory not found: ${docsPath}. Cannot load documentation knowledge.`
+        }
+        // --- End Modification ---
+
+        // Process all collected knowledge
+        if (allDocKnowledge.length > 0) {
+          logger.info(
+            `Adding a total of ${allDocKnowledge.length} documentation files to knowledge base...`
           );
+          let addedCount = 0;
+          for (const docContent of allDocKnowledge) {
+            const knowledgeItem: KnowledgeItem = {
+              id: v4() as UUID,
+              content: { text: docContent },
+            };
+            try {
+              const defaultKnowledgeOptions = {
+                targetTokens: 8000,
+                overlap: 500,
+                modelContextSize: 64000,
+              };
+
+              await runtime.addKnowledge(knowledgeItem, defaultKnowledgeOptions);
+              addedCount++;
+            } catch (addError) {
+              logger.error(`Failed to add knowledge item: ${addError}`);
+            }
+          }
+          logger.info(
+            `Successfully added ${addedCount}/${allDocKnowledge.length} total documentation files to knowledge base.`
+          );
+        } else {
+          // Generic warning if no documents were loaded from any specified directory
+          logger.warn(`No documentation loaded from any specified directory.`);
         }
       } catch (error) {
         logger.error(`Failed to clone or update repository: ${error}`);
@@ -854,38 +886,3 @@ export const ragPlugin: Plugin = {
 };
 
 export default ragPlugin;
-
-function getBaseURL(): string {
-  return 'https://chatapi.akash.network/api/v1';
-}
-
-const EMBEDDING_TIMEOUT = 30000; // 30 seconds timeout
-
-async function generateEmbeddingWithTimeout(text: string, apiKey: string): Promise<number[]> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), EMBEDDING_TIMEOUT);
-
-  try {
-    const response = await fetch(`${getBaseURL()}/embeddings`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'BAAI-bge-large-en-v1-5',
-        input: text,
-      }),
-      signal: controller.signal,
-    });
-
-    if (!response.ok) {
-      throw new Error(`Embedding request failed with status ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data.data[0].embedding;
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
