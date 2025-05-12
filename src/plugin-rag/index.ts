@@ -28,6 +28,7 @@ import { fileURLToPath } from 'node:url';
 import { v4 } from 'uuid';
 import { recentMessagesProvider } from './providers/recentMessages';
 import { execSync } from 'node:child_process';
+import type { EventPayload } from '@elizaos/core';
 
 /**
  * Extracts the text content from within a <response> XML tag.
@@ -446,7 +447,6 @@ const handleServerSync = async ({ runtime, world, rooms, entities, source }: Wor
 const controlMessageHandler = async ({
   runtime,
   message,
-  source,
 }: {
   runtime: IAgentRuntime;
   message: {
@@ -457,7 +457,6 @@ const controlMessageHandler = async ({
     };
     roomId: UUID;
   };
-  source: string;
 }) => {
   try {
     logger.debug(
@@ -575,8 +574,6 @@ const events = {
       logger.debug(`Action ${status}: ${payload.actionName} (${payload.actionId})`);
     },
   ],
-
-  CONTROL_MESSAGE: [controlMessageHandler],
 };
 
 // Get the current file's directory
@@ -769,7 +766,9 @@ export const ragPlugin: Plugin = {
 
     // Ensure logger.warn call is a single string argument
     const apiKey = runtime.getSetting('AKASH_CHAT_API_KEY') as string;
-    const embeddingModelName = runtime.getSetting('AKASHCHAT_EMBEDDING_MODEL', 'BAAI-bge-large-en-v1-5') as string;
+    // Only pass one argument to getSetting, and handle fallback logic manually
+    let embeddingModelName = runtime.getSetting('AKASHCHAT_EMBEDDING_MODEL') as string;
+    if (!embeddingModelName) embeddingModelName = 'BAAI-bge-large-en-v1-5';
     if (!apiKey || !embeddingModelName) {
       logger.warn('AKASH_CHAT_API_KEY or AKASHCHAT_EMBEDDING_MODEL not found. Embeddings might not function correctly if custom logic relies on them directly.');
     }

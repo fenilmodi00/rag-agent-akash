@@ -48,11 +48,10 @@ export const Chat = () => {
 
   // --- Use useLocalStorage for userEntity ---
   // Get or generate a persistent user entity ID
-  const [userEntity, _setUserEntity] = useLocalStorage<string>(
+  const [userEntity] = useLocalStorage<string>(
     "elizaHowUserEntity",
     uuidv4,
   );
-  // Note: We don't typically need setUserEntity here, but the hook provides it.
 
   // --- State ---
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -331,7 +330,7 @@ export const Chat = () => {
       msgHandler?.detach();
       ctrlHandler?.detach();
     };
-  }, [roomId, query, sendMessage, userEntity]);
+  }, [roomId, userEntity, query, sendMessage, socketIOManager]);
 
   // --- Event Handlers ---
   const handleInputChange = useCallback(

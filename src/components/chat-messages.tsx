@@ -77,11 +77,13 @@ export function ChatMessages({
       lastMessageRef.current = currentText;
       scrollToBottom("instant");
     }
-  }, [messages]);
+  }, [messages, scrollToBottom]);
 
   useEffect(() => {
     if (!messages.length) return;
     const lastMessage = messages[messages.length - 1];
+    const lastMessageText = lastMessage?.text;
+    
     assert(
       lastMessage && typeof lastMessage === "object",
       `[ChatMessages Effect 2] Invalid lastMessage (index ${messages.length - 1})`,
@@ -92,10 +94,10 @@ export function ChatMessages({
       `[ChatMessages Effect 2] Invalid lastMessage.name (index ${messages.length - 1}): ${typeof lastMessage.name}`,
     );
     assert(
-      typeof lastMessage.text === "string" ||
-        lastMessage.text === null ||
-        lastMessage.text === undefined,
-      `[ChatMessages Effect 2] Invalid lastMessage.text (index ${messages.length - 1}): ${typeof lastMessage.text}`,
+      typeof lastMessageText === "string" ||
+        lastMessageText === null ||
+        lastMessageText === undefined,
+      `[ChatMessages Effect 2] Invalid lastMessage.text (index ${messages.length - 1}): ${typeof lastMessageText}`,
     );
 
     if (lastMessage.name !== USER_NAME) {
@@ -107,7 +109,7 @@ export function ChatMessages({
         scrollToBottom();
       }
     }
-  }, [messages[messages.length - 1]?.text]);
+  }, [messages, scrollToBottom]);
 
   useEffect(() => {
     return () => {

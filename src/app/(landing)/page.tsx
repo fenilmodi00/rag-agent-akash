@@ -30,7 +30,7 @@ export default function Page() {
             </Suspense>
           </div>
           <p className="text-xs text-zinc-500 dark:text-zinc-500 text-center">
-           Powered by <a href="https://chatapi.akash.network/documentation" className="text-[#FF414C]">Akash Network's Chat API</a>
+           Powered by <a href="https://chatapi.akash.network/documentation" className="text-[#FF414C]">Akash Network&apos;s Chat API</a>
           </p>
         </div>
         <Footer />
