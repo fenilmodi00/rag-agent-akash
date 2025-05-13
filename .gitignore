@@ -13,6 +13,9 @@
 # testing
 /coverage
 
+/elizadb
+
+
 /akash-knowledge
 
 # next.js
