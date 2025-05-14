@@ -22,6 +22,9 @@
   "engines": {
     "node": "20.x"
   },
+  "overrides": {
+    "ref": "npm:ref-napi@^3.0.3"
+  },
   "dependencies": {
     "@babel/runtime": "^7.26.0",
     "@codemirror/autocomplete": "^6.18.3",
@@ -71,7 +74,8 @@
     "socket.io-client": "^4.8.1",
     "sonner": "^1.7.1",
     "uuid": "^11.1.0",
-    "zod": "3.24.2"
+    "zod": "3.24.2",
+    "ref-napi": "^3.0.3"
   },
   "devDependencies": {
     "tsup": "8.4.0",
