@@ -4,6 +4,9 @@
   "version": "1.0.0-beta.49",
   "type": "module",
   "private": true,
+  "workspaces": [
+    "plugin-akash-chat"
+  ],
   "main": "dist/agent.js",
   "module": "dist/agent.js",
   "types": "dist/agent.d.ts",
@@ -101,7 +104,8 @@
   "scripts": {
     "start": "tsup && concurrently \"elizaos start\" \"next start -p 4000\"",
     "dev": "tsup && concurrently \"elizaos dev\" \"next dev -p 4000 --hostname 0.0.0.0\"",
-    "build": "(cd plugin-akash-chat && bun run build) && tsup && next build",
+    "build:main_app": "tsup && next build",
+    "build": "bun run --filter @elizaos/plugin-akash-chat build && bun run --filter Navi build:main_app",
     "lint": "prettier --write ./src",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
