@@ -65,3 +65,23 @@ cache/
 ./data/
 ./models/
 elizaos/
+
+# Project specific
+/elizadb/
+/elizaos/
+/akash/
+/generatedImages/
+/.next/
+/dist/
+/.vercel/
+
+# Bun
+bun.lockb
+
+# Project structure files
+project-structure.txt
+project_structure.txt
+
+# Temporary build files
+*.log
+*.tsbuildinfo
