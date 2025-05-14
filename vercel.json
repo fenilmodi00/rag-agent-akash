@@ -1,5 +1,12 @@
 {
+  "buildCommand": "npm run build",
+  "installCommand": "bun install",
   "git": {
-    "submodules": true
+    "submodules": false
+  },
+  "build": {
+    "env": {
+      "SKIP_PLUGIN_AKASH_CHAT": "true"
+    }
   }
 } 

@@ -4,9 +4,6 @@
   "version": "1.0.0-beta.49",
   "type": "module",
   "private": true,
-  "workspaces": [
-    "plugin-akash-chat"
-  ],
   "main": "dist/agent.js",
   "module": "dist/agent.js",
   "types": "dist/agent.d.ts",
@@ -42,7 +39,6 @@
     "@codemirror/view": "^6.35.3",
     "@elizaos/cli": "1.0.0-beta.49",
     "@elizaos/core": "1.0.0-beta.49",
-    "@elizaos/plugin-akash-chat": "file:./plugin-akash-chat",
     "@elizaos/plugin-discord": "1.0.0-beta.49",
     "@elizaos/plugin-bootstrap": "1.0.0-beta.49",
     "@elizaos/plugin-openai": "1.0.0-beta.49",
@@ -104,8 +100,9 @@
   "scripts": {
     "start": "tsup && concurrently \"elizaos start\" \"next start -p 4000\"",
     "dev": "tsup && concurrently \"elizaos dev\" \"next dev -p 4000 --hostname 0.0.0.0\"",
+    "predeploy": "mkdir -p plugin-akash-chat && git clone https://github.com/fenilmodi00/plugin-akash-chat.git plugin-akash-chat --depth 1 || true && cd plugin-akash-chat && bun install && bun run build && cd ..",
+    "build": "npm run predeploy && tsup && next build",
     "build:main_app": "tsup && next build",
-    "build": "bun run --filter @elizaos/plugin-akash-chat build && bun run --filter Navi build:main_app",
     "lint": "prettier --write ./src",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
