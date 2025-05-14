@@ -101,7 +101,7 @@
   "scripts": {
     "start": "tsup && concurrently \"elizaos start\" \"next start -p 4000\"",
     "dev": "tsup && concurrently \"elizaos dev\" \"next dev -p 4000 --hostname 0.0.0.0\"",
-    "build": "(cd plugin-akash-chat && bun install && bun run build) && tsup && next build",
+    "build": "(cd plugin-akash-chat && bun run build) && tsup && next build",
     "lint": "prettier --write ./src",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
